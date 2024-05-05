@@ -2,7 +2,7 @@ specVersion: 1.0.0
 indexerHints:
   prune: auto
 schema:
-  file: ./schema.graphql
+  file: schema.graphql
 dataSources:
   - kind: ethereum
     name: Request
@@ -19,8 +19,8 @@ dataSources:
         - Transfer
       abis:
         - name: Request
-          file: ./abis/Request.json
+          file: Request\abis\Request.json
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
-      file: ./src/request.ts
+      file: Request\Request.wasm

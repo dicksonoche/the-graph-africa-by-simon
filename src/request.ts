@@ -1,72 +1,24 @@
-import {
-  Burn as BurnEvent,
-  OwnershipTransferred as OwnershipTransferredEvent,
-  Approval as ApprovalEvent,
-  Transfer as TransferEvent
-} from "../generated/Request/Request"
-import {
-  Burn,
-  OwnershipTransferred,
-  Approval,
-  Transfer
-} from "../generated/schema"
-
-export function handleBurn(event: BurnEvent): void {
-  let entity = new Burn(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity._burner = event.params._burner
-  entity._value = event.params._value
-
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
-}
-
-export function handleOwnershipTransferred(
-  event: OwnershipTransferredEvent
-): void {
-  let entity = new OwnershipTransferred(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.previousOwner = event.params.previousOwner
-  entity.newOwner = event.params.newOwner
-
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
-}
-
-export function handleApproval(event: ApprovalEvent): void {
-  let entity = new Approval(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.owner = event.params.owner
-  entity.spender = event.params.spender
-  entity.value = event.params.value
-
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
-
-  entity.save()
-}
+import { Transfer as TransferEvent } from "../generated/Request/Request"
+import { Transfer } from "../generated/schema"
 
 export function handleTransfer(event: TransferEvent): void {
-  let entity = new Transfer(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  )
-  entity.from = event.params.from
-  entity.to = event.params.to
-  entity.value = event.params.value
+  //Create the unique id by concatenating the trx hash with the log index
+  let id = event.transaction.hash.concatI32(event.logIndex.toI32())
+  
+  let transfer = Transfer.load(id);
 
-  entity.blockNumber = event.block.number
-  entity.blockTimestamp = event.block.timestamp
-  entity.transactionHash = event.transaction.hash
+  //If it exist, no need to store, store(the event parameters) only when it doesn't exist
+  if (!transfer) {
+    transfer = new Transfer(id);
+  }
 
-  entity.save()
+  transfer.sender = event.params.from
+  transfer.receiver = event.params.to
+  transfer.amount = event.params.value
+
+  transfer.blockNumber = event.block.number
+  transfer.blockTimestamp = event.block.timestamp
+  transfer.transactionHash = event.transaction.hash
+
+  transfer.save()
 }
